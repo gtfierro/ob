@@ -95,8 +95,18 @@ func (o ObjectOperator) Eval(i interface{}) interface{} {
 	}
 	ismap := (kind == reflect.Map)
 	isstruct := (kind == reflect.Struct)
+	isarray := (kind == reflect.Slice || kind == reflect.Array)
+
+	if isarray {
+		var results []interface{}
+		for i := 0; i < val.Len(); i++ {
+			results = append(results, o.Eval(val.Index(i).Interface()))
+		}
+		return results
+	}
 
 	if !(ismap || isstruct) {
+		fmt.Println("nope", i)
 		return i
 	}
 

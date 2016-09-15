@@ -393,6 +393,11 @@ func TestEvalOperatorChain(t *testing.T) {
 			[]map[string]interface{}{map[string]interface{}{"key1": []string{"a", "b"}}},
 			"b",
 		},
+		{
+			"[:].key1",
+			[]map[string]interface{}{map[string]interface{}{"key1": 123}, map[string]interface{}{"key1": 456}},
+			[]interface{}{123, 456},
+		},
 	} {
 		res := Eval(Parse(test.expr), test.data)
 		if !reflect.DeepEqual(res, test.result) {
