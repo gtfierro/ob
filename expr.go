@@ -8,9 +8,10 @@ import (
 	"errors"
 	"github.com/taylorchu/toki"
 	"strconv"
+	"sync"
 )
 
-//line expr.y:12
+//line expr.y:13
 type exSymType struct {
 	yys int
 	str string
@@ -42,7 +43,8 @@ const exEofCode = 1
 const exErrCode = 2
 const exInitialStackSize = 16
 
-//line expr.y:87
+//line expr.y:88
+
 const eof = 0
 
 func getName(tok uint32) string {
@@ -64,6 +66,7 @@ func getName(tok uint32) string {
 }
 
 type lexer struct {
+	sync.Mutex
 	expression string
 	scanner    *toki.Scanner
 	tokens     []string
@@ -90,13 +93,16 @@ func NewExprLexer() *lexer {
 	return l
 }
 
-func (l *lexer) Parse(s string) {
+func (l *lexer) Parse(s string) ([]Operation, error) {
+	l.Lock()
+	defer l.Unlock()
 	l.expression = s
 	l.operations = []Operation{}
 	l.tokens = []string{}
 	l.error = nil
 	l.scanner.SetInput(s)
 	exParse(l)
+	return l.operations, l.error
 }
 
 func (l *lexer) Lex(lval *exSymType) int {
@@ -515,62 +521,62 @@ exdefault:
 
 	case 1:
 		exDollar = exS[expt-2 : expt+1]
-		//line expr.y:28
+		//line expr.y:29
 		{
 			exlex.(*lexer).operations = append([]Operation{exDollar[1].op}, exDollar[2].opl...)
 		}
 	case 2:
 		exDollar = exS[expt-2 : expt+1]
-		//line expr.y:32
+		//line expr.y:33
 		{
 			exlex.(*lexer).operations = append([]Operation{exDollar[1].op}, exDollar[2].opl...)
 		}
 	case 3:
 		exDollar = exS[expt-1 : expt+1]
-		//line expr.y:36
+		//line expr.y:37
 		{
 			exlex.(*lexer).operations = []Operation{exDollar[1].op}
 		}
 	case 4:
 		exDollar = exS[expt-1 : expt+1]
-		//line expr.y:40
+		//line expr.y:41
 		{
 			exlex.(*lexer).operations = []Operation{exDollar[1].op}
 		}
 	case 5:
 		exDollar = exS[expt-1 : expt+1]
-		//line expr.y:46
+		//line expr.y:47
 		{
 			exVAL.opl = []Operation{exDollar[1].op}
 		}
 	case 6:
 		exDollar = exS[expt-2 : expt+1]
-		//line expr.y:50
+		//line expr.y:51
 		{
 			exVAL.opl = append([]Operation{exDollar[1].op}, exDollar[2].opl...)
 		}
 	case 7:
 		exDollar = exS[expt-2 : expt+1]
-		//line expr.y:56
+		//line expr.y:57
 		{
 			exVAL.op = exDollar[2].op
 		}
 	case 8:
 		exDollar = exS[expt-1 : expt+1]
-		//line expr.y:60
+		//line expr.y:61
 		{
 			exVAL.op = exDollar[1].op
 		}
 	case 9:
 		exDollar = exS[expt-3 : expt+1]
-		//line expr.y:66
+		//line expr.y:67
 		{
 			num, _ := strconv.Atoi(exDollar[2].str)
 			exVAL.op = ArrayOperator{index: num, slice: false, all: false}
 		}
 	case 10:
 		exDollar = exS[expt-5 : expt+1]
-		//line expr.y:71
+		//line expr.y:72
 		{
 			num, _ := strconv.Atoi(exDollar[2].str)
 			num2, _ := strconv.Atoi(exDollar[4].str)
@@ -578,13 +584,13 @@ exdefault:
 		}
 	case 11:
 		exDollar = exS[expt-3 : expt+1]
-		//line expr.y:77
+		//line expr.y:78
 		{
 			exVAL.op = ArrayOperator{slice: false, all: true}
 		}
 	case 12:
 		exDollar = exS[expt-1 : expt+1]
-		//line expr.y:83
+		//line expr.y:84
 		{
 			exVAL.op = ObjectOperator{key: exDollar[1].str}
 		}

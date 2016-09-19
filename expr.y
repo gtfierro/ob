@@ -5,6 +5,7 @@ import (
 	"github.com/taylorchu/toki"
     "errors"
     "strconv"
+    "sync"
 )
 
 %}
@@ -107,6 +108,7 @@ func getName(tok uint32) string {
 }
 
 type lexer struct {
+    sync.Mutex
     expression string
     scanner *toki.Scanner
     tokens  []string
@@ -133,13 +135,16 @@ func NewExprLexer() *lexer {
     return l
 }
 
-func (l *lexer) Parse(s string) {
+func (l *lexer) Parse(s string) ([]Operation, error) {
+    l.Lock()
+    defer l.Unlock()
     l.expression = s
     l.operations = []Operation{}
     l.tokens = []string{}
     l.error = nil
     l.scanner.SetInput(s)
     exParse(l)
+    return l.operations, l.error
 }
 
 func (l *lexer) Lex(lval *exSymType) int {

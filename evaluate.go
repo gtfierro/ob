@@ -13,11 +13,11 @@ func init() {
 }
 
 func Parse(s string) []Operation {
-	l.Parse(s)
-	if l.error != nil {
-		fmt.Println(l.error)
+	ops, err := l.Parse(s)
+	if err != nil {
+		fmt.Println(err)
 	}
-	return l.operations
+	return ops
 }
 
 func Eval(ops []Operation, v interface{}) interface{} {
