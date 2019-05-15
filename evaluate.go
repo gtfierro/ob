@@ -107,7 +107,7 @@ func (o ObjectOperator) Eval(i interface{}) interface{} {
 
 	if !(ismap || isstruct) {
 		fmt.Println("nope", i)
-		return i
+		return nil
 	}
 
 	if ismap {
@@ -115,12 +115,12 @@ func (o ObjectOperator) Eval(i interface{}) interface{} {
 		if try.IsValid() {
 			return try.Interface()
 		} else {
-			return i
+			return nil
 		}
 	}
 	// is struct
 	if val.FieldByName(o.key).IsValid() {
 		return val.FieldByName(o.key).Interface()
 	}
-	return i
+	return nil
 }
